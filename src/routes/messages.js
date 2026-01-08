@@ -3,23 +3,33 @@ const router = express.Router();
 const notionService = require('../services/notionService');
 const metaService = require('../services/metaService');
 const whatsappService = require('../services/whatsappService');
+const config = require('../config');
+const { Client } = require('@notionhq/client');
 
 // ============================================
-// GET /api/messages - Info sobre mensagens
+// GET /api/messages - Listar mensagens do Notion
 // ============================================
 router.get('/', async (req, res) => {
     try {
-        res.json({
-            message: 'Mensagens são recebidas automaticamente via webhook',
-            webhook_url: '/webhook',
-            platforms: ['WhatsApp', 'Messenger', 'Instagram DM'],
-            send_endpoints: {
-                whatsapp: 'POST /api/messages/whatsapp',
-                messenger: 'POST /api/messages/messenger'
-            }
+        const notion = new Client({ auth: config.notion.token });
+        const response = await notion.databases.query({
+            database_id: config.notion.databases.messages,
+            sorts: [{ property: 'Data', direction: 'descending' }],
+            page_size: 50
         });
+
+        const messages = response.results.map(page => ({
+            id: page.id,
+            from: page.properties['Contato']?.title?.[0]?.plain_text || 'Desconhecido',
+            text: page.properties['Mensagem']?.rich_text?.[0]?.plain_text || '',
+            platform: page.properties['Plataforma']?.select?.name || 'Direto',
+            createdAt: page.properties['Data']?.date?.start || page.created_time
+        }));
+
+        res.json({ messages, count: messages.length });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Erro ao buscar mensagens:', error.message);
+        res.json({ messages: [], count: 0, error: error.message });
     }
 });
 

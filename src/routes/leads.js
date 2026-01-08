@@ -2,19 +2,34 @@ const express = require('express');
 const router = express.Router();
 const notionService = require('../services/notionService');
 const metaService = require('../services/metaService');
+const config = require('../config');
+const { Client } = require('@notionhq/client');
 
 // ============================================
-// GET /api/leads - Listar leads (manual sync)
+// GET /api/leads - Listar leads do Notion
 // ============================================
 router.get('/', async (req, res) => {
     try {
-        res.json({
-            message: 'Leads são capturados automaticamente via webhook',
-            webhook_url: '/webhook',
-            instructions: 'Configure o webhook no Meta Business para receber leads automaticamente'
+        const notion = new Client({ auth: config.notion.token });
+        const response = await notion.databases.query({
+            database_id: config.notion.databases.leads,
+            sorts: [{ property: 'Data', direction: 'descending' }],
+            page_size: 50
         });
+
+        const leads = response.results.map(page => ({
+            id: page.id,
+            name: page.properties['Nome']?.title?.[0]?.plain_text || 'N/A',
+            email: page.properties['Email']?.email || 'N/A',
+            phone: page.properties['Telefone']?.phone_number || 'N/A',
+            source: page.properties['Origem']?.select?.name || 'Direto',
+            createdAt: page.properties['Data']?.date?.start || page.created_time
+        }));
+
+        res.json({ leads, count: leads.length });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Erro ao buscar leads:', error.message);
+        res.json({ leads: [], count: 0, error: error.message });
     }
 });
 

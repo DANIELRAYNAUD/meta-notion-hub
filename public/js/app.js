@@ -319,6 +319,8 @@ function addActivity(icon, message) {
 // MODAL - Criação de Posts
 // ============================================
 
+let currentMediaFile = null;
+
 function openNewPostModal() {
     document.getElementById('new-post-modal').classList.add('active');
 
@@ -332,12 +334,13 @@ function openNewPostModal() {
 
     // Reset form
     document.getElementById('new-post-form').reset();
+    clearMediaPreview();
 
     // Setup post type selection
     setupPostTypeSelection();
 
-    // Setup media type toggle
-    setupMediaTypeToggle();
+    // Setup file upload
+    setupFileUpload();
 }
 
 function setupPostTypeSelection() {
@@ -353,19 +356,136 @@ function setupPostTypeSelection() {
     });
 }
 
-function setupMediaTypeToggle() {
-    const mediaTypeSelect = document.querySelector('select[name="mediaType"]');
+function setupFileUpload() {
+    const dropZone = document.getElementById('drop-zone');
+    const mediaInput = document.getElementById('media-input');
+
+    if (!dropZone || !mediaInput) return;
+
+    // Click to open file picker
+    dropZone.addEventListener('click', () => mediaInput.click());
+
+    // Handle file selection
+    mediaInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--accent-blue)';
+        dropZone.style.background = 'rgba(74, 144, 226, 0.1)';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.background = 'transparent';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.background = 'transparent';
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+}
+
+function handleFileSelect(file) {
+    currentMediaFile = file;
+
+    const placeholder = document.getElementById('upload-placeholder');
+    const preview = document.getElementById('upload-preview');
+    const previewImage = document.getElementById('preview-image');
+    const previewVideo = document.getElementById('preview-video');
+    const fileName = document.getElementById('file-name');
     const thumbnailGroup = document.getElementById('thumbnail-group');
 
-    if (mediaTypeSelect && thumbnailGroup) {
-        mediaTypeSelect.addEventListener('change', () => {
-            if (mediaTypeSelect.value === 'video') {
-                thumbnailGroup.style.display = 'block';
-            } else {
-                thumbnailGroup.style.display = 'none';
+    placeholder.style.display = 'none';
+    preview.style.display = 'block';
+    fileName.textContent = `${file.name} (${formatFileSize(file.size)})`;
+
+    // Show preview based on file type
+    if (file.type.startsWith('video/')) {
+        previewVideo.style.display = 'block';
+        previewImage.style.display = 'none';
+        previewVideo.src = URL.createObjectURL(file);
+        thumbnailGroup.style.display = 'block';
+    } else {
+        previewImage.style.display = 'block';
+        previewVideo.style.display = 'none';
+        previewImage.src = URL.createObjectURL(file);
+        thumbnailGroup.style.display = 'none';
+    }
+}
+
+function clearMediaPreview() {
+    currentMediaFile = null;
+
+    const placeholder = document.getElementById('upload-placeholder');
+    const preview = document.getElementById('upload-preview');
+    const previewImage = document.getElementById('preview-image');
+    const previewVideo = document.getElementById('preview-video');
+    const uploadedUrl = document.getElementById('uploaded-media-url');
+
+    if (placeholder) placeholder.style.display = 'block';
+    if (preview) preview.style.display = 'none';
+    if (previewImage) { previewImage.style.display = 'none'; previewImage.src = ''; }
+    if (previewVideo) { previewVideo.style.display = 'none'; previewVideo.src = ''; }
+    if (uploadedUrl) uploadedUrl.value = '';
+}
+
+async function uploadMediaFile(file) {
+    const formData = new FormData();
+    formData.append('media', file);
+
+    const progressBar = document.getElementById('progress-bar');
+    const progressDiv = document.getElementById('upload-progress');
+    const progressText = document.getElementById('progress-text');
+
+    progressDiv.style.display = 'block';
+    progressBar.style.width = '0%';
+
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = `Enviando... ${percent}%`;
             }
         });
-    }
+
+        xhr.addEventListener('load', () => {
+            progressDiv.style.display = 'none';
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                resolve(response);
+            } else {
+                reject(new Error('Erro no upload'));
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            progressDiv.style.display = 'none';
+            reject(new Error('Erro de conexão'));
+        });
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
+    });
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 function closeModal() {
@@ -415,11 +535,24 @@ document.getElementById('new-post-form').addEventListener('submit', async (e) =>
     const date = formData.get('publishDate');
     const time = formData.get('publishTime') || '10:00';
 
+    let mediaUrl = '';
+
+    // Upload file if selected
+    if (currentMediaFile) {
+        try {
+            addActivity('⏳', 'Enviando mídia...');
+            const uploadResult = await uploadMediaFile(currentMediaFile);
+            mediaUrl = uploadResult.url;
+            addActivity('✅', 'Mídia enviada com sucesso');
+        } catch (error) {
+            alert('Erro ao enviar mídia: ' + error.message);
+            return;
+        }
+    }
+
     const postData = {
         content: formData.get('content'),
-        mediaUrl: formData.get('mediaUrl'),
-        mediaType: formData.get('mediaType'),
-        thumbnailUrl: formData.get('thumbnailUrl'),
+        mediaUrl: mediaUrl,
         postType: formData.get('postType'),
         firstComment: formData.get('firstComment'),
         location: formData.get('location'),
@@ -439,8 +572,7 @@ document.getElementById('new-post-form').addEventListener('submit', async (e) =>
                     imageUrl: postData.mediaUrl,
                     platform: platform,
                     publishDate: postData.publishDate,
-                    postType: postData.postType,
-                    mediaType: postData.mediaType
+                    postType: postData.postType
                 })
             });
 

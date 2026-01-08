@@ -358,22 +358,50 @@
                     <!-- Mídia -->
                     <div class="form-group">
                         <label>🖼️ Mídia (Imagem ou Vídeo)</label>
-                        <div style="display: flex; gap: 10px;">
-                            <select name="mediaType" style="width: 120px;">
-                                <option value="image">📷 Imagem</option>
-                                <option value="video">🎬 Vídeo</option>
-                            </select>
-                            <input type="url" name="mediaUrl" placeholder="Cole a URL da imagem ou vídeo..."
-                                style="flex: 1;">
+
+                        <!-- Drop Zone -->
+                        <div id="drop-zone"
+                            style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s ease; margin-bottom: 10px;">
+                            <input type="file" id="media-input" name="mediaFile" accept="image/*,video/*"
+                                style="display: none;">
+                            <div id="upload-placeholder">
+                                <span style="font-size: 48px;">📁</span>
+                                <p style="margin: 10px 0; color: var(--text-secondary);">Arraste e solte ou clique para
+                                    selecionar</p>
+                                <small style="color: var(--text-muted);">JPG, PNG, GIF, MP4 (máx. 100MB)</small>
+                            </div>
+                            <div id="upload-preview" style="display: none;">
+                                <img id="preview-image" src=""
+                                    style="max-width: 100%; max-height: 200px; border-radius: 8px; display: none;">
+                                <video id="preview-video" src=""
+                                    style="max-width: 100%; max-height: 200px; border-radius: 8px; display: none;"
+                                    controls></video>
+                                <p id="file-name" style="margin-top: 10px; color: var(--accent-green);"></p>
+                                <button type="button" onclick="clearMediaPreview()"
+                                    style="margin-top: 10px; padding: 5px 15px; background: var(--accent-red); color: white; border: none; border-radius: 5px; cursor: pointer;">✖
+                                    Remover</button>
+                            </div>
                         </div>
-                        <small style="color: var(--text-muted);">Use URLs públicas de imagens/vídeos (JPG, PNG,
-                            MP4)</small>
+
+                        <!-- Upload Progress -->
+                        <div id="upload-progress" style="display: none;">
+                            <div
+                                style="background: var(--bg-secondary); border-radius: 10px; height: 8px; overflow: hidden;">
+                                <div id="progress-bar"
+                                    style="background: var(--gradient-blue); height: 100%; width: 0%; transition: width 0.3s ease;">
+                                </div>
+                            </div>
+                            <small id="progress-text" style="color: var(--text-muted);">Enviando...</small>
+                        </div>
+
+                        <!-- Hidden field for uploaded URL -->
+                        <input type="hidden" name="mediaUrl" id="uploaded-media-url">
                     </div>
 
                     <!-- Thumbnail para Vídeo -->
                     <div class="form-group" id="thumbnail-group" style="display: none;">
                         <label>🎨 Capa do Vídeo (opcional)</label>
-                        <input type="url" name="thumbnailUrl" placeholder="URL da imagem de capa...">
+                        <input type="file" name="thumbnailFile" accept="image/*" id="thumbnail-input">
                     </div>
 
                     <!-- Agendamento -->

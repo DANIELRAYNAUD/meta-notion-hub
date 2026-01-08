@@ -13,6 +13,7 @@ const metricsRoutes = require('./routes/metrics');
 const messagesRoutes = require('./routes/messages');
 const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
+const uploadRoutes = require('./routes/upload');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,8 +32,8 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Serve static files (Dashboard)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -43,6 +44,7 @@ app.use('/api/leads', leadsRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/messages', messagesRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 

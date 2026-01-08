@@ -214,6 +214,130 @@ class MetaService {
             throw error;
         }
     }
+
+    // ============================================
+    // SCHEDULED POSTS - Buscar posts agendados no Meta
+    // ============================================
+    async getScheduledFromMeta() {
+        try {
+            // Buscar posts agendados do Facebook Page
+            const fbResponse = await axios.get(
+                `${GRAPH_API_BASE}/${this.pageId}/scheduled_posts`,
+                {
+                    params: {
+                        fields: 'id,message,created_time,scheduled_publish_time,story,full_picture',
+                        access_token: this.accessToken
+                    }
+                }
+            );
+
+            const scheduledPosts = (fbResponse.data.data || []).map(post => ({
+                id: post.id,
+                content: post.message || '',
+                image: post.full_picture || null,
+                scheduledFor: post.scheduled_publish_time,
+                platform: 'Facebook',
+                source: 'meta'
+            }));
+
+            console.log(`✅ Encontrados ${scheduledPosts.length} posts agendados no Meta`);
+            return scheduledPosts;
+        } catch (error) {
+            console.error('❌ Erro ao buscar posts agendados:', error.response?.data || error.message);
+            return [];
+        }
+    }
+
+    // ============================================
+    // BEST TIMES - Analisar melhores horários de postagem
+    // ============================================
+    async getBestPostingTimes() {
+        try {
+            // Buscar posts recentes com engajamento
+            const response = await axios.get(
+                `${GRAPH_API_BASE}/${this.pageId}/posts`,
+                {
+                    params: {
+                        fields: 'id,message,created_time,shares,reactions.summary(true),comments.summary(true)',
+                        limit: 100,
+                        access_token: this.accessToken
+                    }
+                }
+            );
+
+            const posts = response.data.data || [];
+
+            // Analisar por hora do dia
+            const hourlyEngagement = {};
+            const dayOfWeekEngagement = {};
+
+            posts.forEach(post => {
+                const date = new Date(post.created_time);
+                const hour = date.getHours();
+                const dayOfWeek = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+
+                const engagement =
+                    (post.reactions?.summary?.total_count || 0) +
+                    (post.comments?.summary?.total_count || 0) * 2 +
+                    (post.shares?.count || 0) * 3;
+
+                // Por hora
+                if (!hourlyEngagement[hour]) {
+                    hourlyEngagement[hour] = { total: 0, count: 0 };
+                }
+                hourlyEngagement[hour].total += engagement;
+                hourlyEngagement[hour].count++;
+
+                // Por dia da semana
+                if (!dayOfWeekEngagement[dayOfWeek]) {
+                    dayOfWeekEngagement[dayOfWeek] = { total: 0, count: 0 };
+                }
+                dayOfWeekEngagement[dayOfWeek].total += engagement;
+                dayOfWeekEngagement[dayOfWeek].count++;
+            });
+
+            // Calcular médias e ordenar
+            const bestHours = Object.entries(hourlyEngagement)
+                .map(([hour, data]) => ({
+                    hour: parseInt(hour),
+                    avgEngagement: data.count > 0 ? Math.round(data.total / data.count) : 0,
+                    postCount: data.count
+                }))
+                .sort((a, b) => b.avgEngagement - a.avgEngagement)
+                .slice(0, 5);
+
+            const bestDays = Object.entries(dayOfWeekEngagement)
+                .map(([day, data]) => ({
+                    day,
+                    avgEngagement: data.count > 0 ? Math.round(data.total / data.count) : 0,
+                    postCount: data.count
+                }))
+                .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+            console.log('✅ Análise de melhores horários concluída');
+
+            return {
+                analyzedPosts: posts.length,
+                bestHours: bestHours.map(h => ({
+                    time: `${h.hour.toString().padStart(2, '0')}:00`,
+                    engagement: h.avgEngagement,
+                    posts: h.postCount
+                })),
+                bestDays,
+                recommendation: bestHours.length > 0
+                    ? `Melhores horários: ${bestHours.slice(0, 3).map(h => `${h.hour}h`).join(', ')}`
+                    : 'Publique mais posts para obter recomendações'
+            };
+        } catch (error) {
+            console.error('❌ Erro na análise de horários:', error.response?.data || error.message);
+            return {
+                analyzedPosts: 0,
+                bestHours: [],
+                bestDays: [],
+                recommendation: 'Erro ao analisar dados'
+            };
+        }
+    }
 }
 
 module.exports = new MetaService();

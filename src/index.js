@@ -14,6 +14,7 @@ const messagesRoutes = require('./routes/messages');
 const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
+const insightsRoutes = require('./routes/insights');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/insights', insightsRoutes);
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 

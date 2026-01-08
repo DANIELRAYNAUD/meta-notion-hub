@@ -25,11 +25,17 @@ document.querySelectorAll('.nav-item').forEach(item => {
         const titles = {
             overview: 'Visão Geral',
             posts: 'Posts',
+            insights: 'Insights',
             leads: 'Leads',
             messages: 'Mensagens',
             metrics: 'Métricas'
         };
         document.getElementById('page-title').textContent = titles[section] || section;
+
+        // Load insights data when tab is clicked
+        if (section === 'insights') {
+            loadInsights();
+        }
     });
 });
 
@@ -737,6 +743,106 @@ document.getElementById('batch-modal')?.addEventListener('click', (e) => {
         closeBatchModal();
     }
 });
+
+// ============================================
+// INSIGHTS - Melhores Horários e Posts do Meta
+// ============================================
+
+async function loadInsights() {
+    await Promise.all([
+        loadBestTimes(),
+        loadMetaScheduled()
+    ]);
+}
+
+async function refreshInsights() {
+    addActivity('🔄', 'Atualizando análise de insights...');
+    await loadInsights();
+    addActivity('✅', 'Análise atualizada');
+}
+
+async function loadBestTimes() {
+    const loading = document.getElementById('best-times-loading');
+    const content = document.getElementById('best-times-content');
+
+    try {
+        const data = await fetchAPI('/api/insights/best-times');
+
+        if (data && !data.error) {
+            // Update analyzed count
+            document.getElementById('analyzed-posts-count').textContent = data.analyzedPosts || 0;
+
+            // Best hours
+            const hoursList = document.getElementById('best-hours-list');
+            if (data.bestHours && data.bestHours.length > 0) {
+                hoursList.innerHTML = data.bestHours.map((h, i) => `
+                    <div class="connection-item" style="background: var(--bg-secondary); padding: 15px; border-radius: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '⏰'}</span>
+                        <div>
+                            <strong style="font-size: 18px; color: var(--accent-blue);">${h.time}</strong>
+                            <p style="font-size: 12px; color: var(--text-muted);">Engajamento: ${h.engagement} | ${h.posts} posts</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                hoursList.innerHTML = '<p style="color: var(--text-muted);">Publique mais posts para obter dados</p>';
+            }
+
+            // Best days
+            const daysList = document.getElementById('best-days-list');
+            if (data.bestDays && data.bestDays.length > 0) {
+                daysList.innerHTML = data.bestDays.map((d, i) => `
+                    <div class="connection-item" style="background: var(--bg-secondary); padding: 15px; border-radius: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">📅</span>
+                        <div>
+                            <strong style="color: ${i === 0 ? 'var(--accent-green)' : 'var(--text-primary)'}">${d.day}</strong>
+                            <p style="font-size: 12px; color: var(--text-muted);">Engajamento médio: ${d.avgEngagement}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Recommendation
+            document.getElementById('recommendation-text').textContent = data.recommendation || 'Sem recomendações ainda';
+
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar best times:', error);
+        loading.innerHTML = '<p style="color: var(--accent-red);">Erro ao carregar análise</p>';
+    }
+}
+
+async function loadMetaScheduled() {
+    const tbody = document.getElementById('meta-scheduled-table');
+
+    try {
+        const data = await fetchAPI('/api/insights/scheduled');
+
+        if (data && data.posts && data.posts.length > 0) {
+            tbody.innerHTML = data.posts.map(post => `
+                <tr>
+                    <td>${truncate(post.content, 50) || 'Sem texto'}</td>
+                    <td><span class="status-badge">${post.platform}</span></td>
+                    <td>${formatDate(post.scheduledFor)}</td>
+                    <td><span style="color: var(--accent-purple);">Meta Business</span></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" class="loading-cell">Nenhum post agendado no Meta</td></tr>';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar posts do Meta:', error);
+        tbody.innerHTML = '<tr><td colspan="4" class="loading-cell">Erro ao carregar posts do Meta</td></tr>';
+    }
+}
+
+async function syncMetaScheduled() {
+    addActivity('🔄', 'Sincronizando posts do Meta...');
+    await loadMetaScheduled();
+    addActivity('✅', 'Posts do Meta sincronizados');
+}
 
 // ============================================
 // INIT

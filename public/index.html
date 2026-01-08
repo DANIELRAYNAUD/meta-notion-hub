@@ -28,6 +28,10 @@
                 <span class="nav-icon">📝</span>
                 <span>Posts</span>
             </a>
+            <a href="#" class="nav-item" data-section="insights">
+                <span class="nav-icon">🎯</span>
+                <span>Insights</span>
+            </a>
             <a href="#" class="nav-item" data-section="leads">
                 <span class="nav-icon">👥</span>
                 <span>Leads</span>
@@ -182,6 +186,76 @@
                             <tbody id="posts-table">
                                 <tr>
                                     <td colspan="5" class="loading-cell">Carregando posts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights Section -->
+        <section id="section-insights" class="section">
+            <!-- Melhores Horários -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🎯 Melhores Horários para Postar</h2>
+                    <button class="btn btn-secondary" onclick="refreshInsights()">🔄 Atualizar Análise</button>
+                </div>
+                <div class="card-body">
+                    <div id="best-times-loading">
+                        <p style="color: var(--text-muted); text-align: center;">⏳ Analisando seus posts...</p>
+                    </div>
+                    <div id="best-times-content" style="display: none;">
+                        <div class="stats-grid" style="margin-bottom: 20px;">
+                            <div class="stat-card">
+                                <div class="stat-icon blue">📊</div>
+                                <div class="stat-info">
+                                    <h3 id="analyzed-posts-count">0</h3>
+                                    <p>Posts Analisados</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: 15px;">⏰ Top 5 Melhores Horários</h3>
+                        <div id="best-hours-list" class="connections-grid" style="margin-bottom: 30px;">
+                            <!-- Best hours will be loaded here -->
+                        </div>
+
+                        <h3 style="margin-bottom: 15px;">📅 Melhores Dias da Semana</h3>
+                        <div id="best-days-list" class="connections-grid">
+                            <!-- Best days will be loaded here -->
+                        </div>
+
+                        <div id="recommendation-box"
+                            style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(52, 152, 219, 0.2)); border-radius: 10px; border-left: 4px solid var(--accent-green);">
+                            <strong>💡 Recomendação:</strong>
+                            <span id="recommendation-text">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Agendados no Meta -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📅 Posts Agendados no Meta Business</h2>
+                    <button class="btn btn-secondary" onclick="syncMetaScheduled()">🔄 Sincronizar</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Conteúdo</th>
+                                    <th>Plataforma</th>
+                                    <th>Agendado Para</th>
+                                    <th>Origem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="meta-scheduled-table">
+                                <tr>
+                                    <td colspan="4" class="loading-cell">Carregando posts do Meta...</td>
                                 </tr>
                             </tbody>
                         </table>

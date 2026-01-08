@@ -326,15 +326,30 @@ class MetaService {
                 bestDays,
                 recommendation: bestHours.length > 0
                     ? `Melhores horários: ${bestHours.slice(0, 3).map(h => `${h.hour}h`).join(', ')}`
-                    : 'Publique mais posts para obter recomendações'
+                    : 'Publique posts na sua página do Facebook/Instagram para obter recomendações'
             };
         } catch (error) {
-            console.error('❌ Erro na análise de horários:', error.response?.data || error.message);
+            const errorMsg = error.response?.data?.error?.message || error.message;
+            console.error('❌ Erro na análise de horários:', errorMsg);
+
+            // Verificar tipo de erro para mensagem amigável
+            let recommendation = 'Erro ao analisar dados';
+            if (errorMsg.includes('permission') || errorMsg.includes('access')) {
+                recommendation = '⚠️ Permissões insuficientes. Adicione pages_read_engagement no Meta App';
+            } else if (errorMsg.includes('token')) {
+                recommendation = '⚠️ Token inválido ou expirado. Regenere no Meta Developer';
+            } else if (!this.pageId) {
+                recommendation = '⚠️ META_PAGE_ID não configurado nas variáveis de ambiente';
+            } else {
+                recommendation = 'Publique posts na sua página para obter análises de engajamento';
+            }
+
             return {
                 analyzedPosts: 0,
                 bestHours: [],
                 bestDays: [],
-                recommendation: 'Erro ao analisar dados'
+                recommendation,
+                error: errorMsg
             };
         }
     }

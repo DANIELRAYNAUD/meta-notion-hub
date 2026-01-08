@@ -60,6 +60,55 @@ app.get('/', (req, res) => {
   res.redirect('/dashboard');
 });
 
+// Privacy Policy page (required by Meta)
+app.get('/privacy', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Política de Privacidade - CRMJA Hub</title>
+      <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; line-height: 1.6; }
+        h1 { color: #1a1a2e; }
+      </style>
+    </head>
+    <body>
+      <h1>Política de Privacidade</h1>
+      <p>Última atualização: Janeiro 2026</p>
+      <h2>Coleta de Dados</h2>
+      <p>O CRMJA Hub coleta dados de leads, mensagens e métricas de suas contas do Facebook e Instagram para gerenciamento e análise.</p>
+      <h2>Uso dos Dados</h2>
+      <p>Os dados são usados exclusivamente para:</p>
+      <ul>
+        <li>Gerenciar leads recebidos</li>
+        <li>Agendar e publicar posts</li>
+        <li>Analisar métricas de engajamento</li>
+      </ul>
+      <h2>Contato</h2>
+      <p>Para questões sobre privacidade, entre em contato pelo email: contato@crmja.com.br</p>
+    </body>
+    </html>
+  `);
+});
+
+// Data Deletion callback (required by Meta)
+app.get('/data-deletion', (req, res) => {
+  res.json({
+    url: 'https://meta-notion-hub.onrender.com/data-deletion',
+    confirmation_code: 'CRMJA_' + Date.now()
+  });
+});
+
+app.post('/data-deletion', (req, res) => {
+  console.log('📋 Solicitação de exclusão de dados recebida:', req.body);
+  res.json({
+    url: 'https://meta-notion-hub.onrender.com/data-deletion',
+    confirmation_code: 'CRMJA_DEL_' + Date.now()
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);

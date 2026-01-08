@@ -2,22 +2,31 @@ const express = require('express');
 const router = express.Router();
 const notionService = require('../services/notionService');
 const metaService = require('../services/metaService');
+const config = require('../config');
+const { Client } = require('@notionhq/client');
 
 // ============================================
-// GET /api/posts - Listar posts agendados
+// GET /api/posts - Listar todos os posts
 // ============================================
 router.get('/', async (req, res) => {
     try {
-        const posts = await notionService.getScheduledPosts();
+        const notion = new Client({ auth: config.notion.token });
+        const response = await notion.databases.query({
+            database_id: config.notion.databases.posts,
+            sorts: [{ property: 'DataPublicacao', direction: 'descending' }],
+            page_size: 50
+        });
+
         res.json({
-            count: posts.length,
-            posts: posts.map(post => ({
+            count: response.results.length,
+            posts: response.results.map(post => ({
                 id: post.id,
                 properties: post.properties
             }))
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('❌ Erro ao buscar posts:', error.message);
+        res.json({ count: 0, posts: [], error: error.message });
     }
 });
 

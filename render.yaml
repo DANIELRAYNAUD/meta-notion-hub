@@ -1,0 +1,52 @@
+# Render.com Blueprint
+# Deploy automático com este arquivo
+
+services:
+  - type: web
+    name: meta-notion-hub
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Notion
+      - key: NOTION_API_KEY
+        sync: false
+      - key: NOTION_PAGE_ID
+        sync: false
+      - key: NOTION_LEADS_DB
+        sync: false
+      - key: NOTION_POSTS_DB
+        sync: false
+      - key: NOTION_METRICS_DB
+        sync: false
+      - key: NOTION_MESSAGES_DB
+        sync: false
+      # Meta/Facebook
+      - key: META_APP_ID
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: META_PAGE_ID
+        sync: false
+      - key: META_AD_ACCOUNT_ID
+        sync: false
+      - key: INSTAGRAM_ACCOUNT_ID
+        sync: false
+      # WhatsApp
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      # Webhooks
+      - key: WEBHOOK_VERIFY_TOKEN
+        sync: false
+      # OAuth
+      - key: OAUTH_REDIRECT_URI
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true

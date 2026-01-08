@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Notion Hub - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">📊</div>
+            <span>Meta Hub</span>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="nav-icon">🏠</span>
+                <span>Visão Geral</span>
+            </a>
+            <a href="#" class="nav-item" data-section="posts">
+                <span class="nav-icon">📝</span>
+                <span>Posts</span>
+            </a>
+            <a href="#" class="nav-item" data-section="leads">
+                <span class="nav-icon">👥</span>
+                <span>Leads</span>
+            </a>
+            <a href="#" class="nav-item" data-section="messages">
+                <span class="nav-icon">💬</span>
+                <span>Mensagens</span>
+            </a>
+            <a href="#" class="nav-item" data-section="metrics">
+                <span class="nav-icon">📈</span>
+                <span>Métricas</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-indicator">
+                <span class="status-dot online"></span>
+                <span>Sistema Online</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 id="page-title">Visão Geral</h1>
+                <p class="header-subtitle">Bem-vindo ao seu painel de controle</p>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-refresh" onclick="refreshData()">
+                    🔄 Atualizar
+                </button>
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span>Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <section id="section-overview" class="section active">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📊</div>
+                    <div class="stat-info">
+                        <h3 id="stat-reach">0</h3>
+                        <p>Alcance Total</p>
+                    </div>
+                    <div class="stat-trend up">+12%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">📝</div>
+                    <div class="stat-info">
+                        <h3 id="stat-posts">0</h3>
+                        <p>Posts Publicados</p>
+                    </div>
+                    <div class="stat-trend up">+5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">👥</div>
+                    <div class="stat-info">
+                        <h3 id="stat-leads">0</h3>
+                        <p>Leads Recebidos</p>
+                    </div>
+                    <div class="stat-trend up">+23</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">💬</div>
+                    <div class="stat-info">
+                        <h3 id="stat-messages">0</h3>
+                        <p>Mensagens</p>
+                    </div>
+                    <div class="stat-trend up">+18</div>
+                </div>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🔗 Status das Conexões</h2>
+                </div>
+                <div class="card-body">
+                    <div class="connections-grid">
+                        <div class="connection-item" id="conn-meta">
+                            <span class="conn-icon">📘</span>
+                            <span class="conn-name">Meta API</span>
+                            <span class="conn-status loading">Verificando...</span>
+                        </div>
+                        <div class="connection-item" id="conn-notion">
+                            <span class="conn-icon">📓</span>
+                            <span class="conn-name">Notion</span>
+                            <span class="conn-status loading">Verificando...</span>
+                        </div>
+                        <div class="connection-item" id="conn-instagram">
+                            <span class="conn-icon">📷</span>
+                            <span class="conn-name">Instagram</span>
+                            <span class="conn-status loading">Verificando...</span>
+                        </div>
+                        <div class="connection-item" id="conn-webhook">
+                            <span class="conn-icon">🔔</span>
+                            <span class="conn-name">Webhooks</span>
+                            <span class="conn-status loading">Verificando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📋 Atividade Recente</h2>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <span class="activity-icon">🚀</span>
+                            <div class="activity-content">
+                                <p><strong>Sistema iniciado</strong></p>
+                                <span class="activity-time">Agora</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Posts Section -->
+        <section id="section-posts" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>📝 Posts Agendados</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="openBatchModal()">📅 Agendar em Lote</button>
+                        <button class="btn btn-primary" onclick="openNewPostModal()">+ Novo Post</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Conteúdo</th>
+                                    <th>Plataforma</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posts-table">
+                                <tr>
+                                    <td colspan="5" class="loading-cell">Carregando posts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leads Section -->
+        <section id="section-leads" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>👥 Leads Recebidos</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                    <th>Origem</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leads-table">
+                                <tr>
+                                    <td colspan="5" class="loading-cell">Carregando leads...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Messages Section -->
+        <section id="section-messages" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>💬 Mensagens</h2>
+                </div>
+                <div class="card-body">
+                    <div class="messages-list" id="messages-list">
+                        <div class="message-item">
+                            <div class="message-avatar">👤</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <strong>Carregando...</strong>
+                                    <span class="message-time"></span>
+                                </div>
+                                <p>Aguardando mensagens...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Section -->
+        <section id="section-metrics" class="section">
+            <div class="stats-grid">
+                <div class="stat-card large">
+                    <div class="stat-icon blue">👁️</div>
+                    <div class="stat-info">
+                        <h3 id="metric-impressions">0</h3>
+                        <p>Impressões</p>
+                    </div>
+                </div>
+                <div class="stat-card large">
+                    <div class="stat-icon green">📢</div>
+                    <div class="stat-info">
+                        <h3 id="metric-reach">0</h3>
+                        <p>Alcance</p>
+                    </div>
+                </div>
+                <div class="stat-card large">
+                    <div class="stat-icon purple">👆</div>
+                    <div class="stat-info">
+                        <h3 id="metric-clicks">0</h3>
+                        <p>Cliques</p>
+                    </div>
+                </div>
+                <div class="stat-card large">
+                    <div class="stat-icon orange">💰</div>
+                    <div class="stat-info">
+                        <h3 id="metric-spend">R$ 0</h3>
+                        <p>Investimento</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>📈 Histórico de Métricas</h2>
+                    <button class="btn btn-secondary" onclick="syncMetrics()">🔄 Sincronizar</button>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="metrics-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- New Post Modal -->
+    <div id="new-post-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 Novo Post</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="new-post-form">
+                    <div class="form-group">
+                        <label>Conteúdo</label>
+                        <textarea name="content" rows="4" placeholder="Escreva seu post aqui..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL da Imagem (opcional)</label>
+                        <input type="url" name="imageUrl" placeholder="https://...">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Plataforma</label>
+                            <select name="platform" required>
+                                <option value="Instagram">Instagram</option>
+                                <option value="Facebook">Facebook</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data de Publicação</label>
+                            <input type="datetime-local" name="publishDate" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Agendar Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Posts Modal -->
+    <div id="batch-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>📅 Agendar Posts em Lote</h2>
+                <button class="modal-close" onclick="closeBatchModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Adicione múltiplos posts abaixo. Cada post será agendado individualmente no Notion.
+                </p>
+
+                <div id="batch-posts-container">
+                    <!-- Posts serão adicionados aqui -->
+                </div>
+
+                <button type="button" class="btn btn-secondary" onclick="addBatchPost()"
+                    style="width: 100%; margin-bottom: 20px;">
+                    ➕ Adicionar Mais um Post
+                </button>
+
+                <div id="batch-result"
+                    style="display: none; padding: 15px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 20px;">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeBatchModal()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitBatchPosts()">📅 Agendar Todos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

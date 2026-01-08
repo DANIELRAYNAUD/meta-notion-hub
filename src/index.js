@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 // Import routes
 const webhookRoutes = require('./routes/webhooks');
@@ -16,8 +17,19 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
+// Security middleware - configurado para permitir scripts inline do dashboard
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"]
+    }
+  }
+}));
 app.use(cors());
 
 // Rate limiting
@@ -31,7 +43,10 @@ app.use('/api/', limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Serve static files (Dashboard)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// API Routes
 app.use('/webhook', webhookRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/posts', postsRoutes);
@@ -40,23 +55,14 @@ app.use('/api/messages', messagesRoutes);
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 
-// Root endpoint
+// Dashboard route (serve index.html)
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Root redirect to dashboard
 app.get('/', (req, res) => {
-  res.json({
-    name: 'Meta Notion Hub',
-    version: '1.0.0',
-    status: 'running',
-    endpoints: {
-      health: '/health',
-      auth: '/auth/facebook',
-      authStatus: '/auth/status',
-      webhook: '/webhook',
-      leads: '/api/leads',
-      posts: '/api/posts',
-      metrics: '/api/metrics',
-      messages: '/api/messages'
-    }
-  });
+  res.redirect('/dashboard');
 });
 
 // Error handling middleware

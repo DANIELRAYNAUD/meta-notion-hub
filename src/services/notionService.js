@@ -75,7 +75,7 @@ class NotionService {
     async updatePostStatus(pageId, status, postId = null) {
         try {
             const properties = {
-                'Status': { select: { name: status } }
+                'Status': { status: { name: status } }
             };
 
             if (postId) {
@@ -91,6 +91,49 @@ class NotionService {
             console.log('✅ Status do post atualizado:', status);
         } catch (error) {
             console.error('❌ Erro ao atualizar status:', error.message);
+            throw error;
+        }
+    }
+
+    // ============================================
+    // POSTS - Criar post agendado
+    // ============================================
+    async createScheduledPost(postData) {
+        try {
+            const response = await this.client.pages.create({
+                parent: { database_id: config.notion.databases.posts },
+                properties: {
+                    'Conteudo': {
+                        title: [{ text: { content: postData.content || '' } }]
+                    },
+                    'Plataforma': {
+                        select: { name: postData.platform || 'Instagram' }
+                    },
+                    'DataPublicacao': {
+                        date: { start: postData.publishDate || new Date().toISOString() }
+                    },
+                    'Status': {
+                        status: { name: 'Agendado' }
+                    }
+                }
+            });
+
+            // Adicionar URL da imagem se fornecida
+            if (postData.imageUrl) {
+                await this.client.pages.update({
+                    page_id: response.id,
+                    properties: {
+                        'Imagem': {
+                            url: postData.imageUrl
+                        }
+                    }
+                });
+            }
+
+            console.log('✅ Post agendado criado no Notion:', response.id);
+            return response;
+        } catch (error) {
+            console.error('❌ Erro ao criar post agendado:', error.message);
             throw error;
         }
     }

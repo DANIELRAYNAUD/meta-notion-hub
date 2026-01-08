@@ -316,21 +316,76 @@ function addActivity(icon, message) {
 }
 
 // ============================================
-// MODAL
+// MODAL - Criação de Posts
 // ============================================
 
 function openNewPostModal() {
     document.getElementById('new-post-modal').classList.add('active');
 
-    // Set default date to now + 1 hour
-    const now = new Date();
-    now.setHours(now.getHours() + 1);
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     const dateInput = document.querySelector('input[name="publishDate"]');
-    dateInput.value = now.toISOString().slice(0, 16);
+    if (dateInput) {
+        dateInput.value = tomorrow.toISOString().split('T')[0];
+    }
+
+    // Reset form
+    document.getElementById('new-post-form').reset();
+
+    // Setup post type selection
+    setupPostTypeSelection();
+
+    // Setup media type toggle
+    setupMediaTypeToggle();
+}
+
+function setupPostTypeSelection() {
+    document.querySelectorAll('.post-type-option').forEach(option => {
+        option.addEventListener('click', () => {
+            // Remove selection from all
+            document.querySelectorAll('.post-type-option').forEach(opt => {
+                opt.style.borderColor = 'var(--border-color)';
+            });
+            // Add selection to clicked
+            option.style.borderColor = 'var(--accent-blue)';
+        });
+    });
+}
+
+function setupMediaTypeToggle() {
+    const mediaTypeSelect = document.querySelector('select[name="mediaType"]');
+    const thumbnailGroup = document.getElementById('thumbnail-group');
+
+    if (mediaTypeSelect && thumbnailGroup) {
+        mediaTypeSelect.addEventListener('change', () => {
+            if (mediaTypeSelect.value === 'video') {
+                thumbnailGroup.style.display = 'block';
+            } else {
+                thumbnailGroup.style.display = 'none';
+            }
+        });
+    }
 }
 
 function closeModal() {
     document.getElementById('new-post-modal').classList.remove('active');
+}
+
+function saveDraft() {
+    const form = document.getElementById('new-post-form');
+    const formData = new FormData(form);
+    const draft = {
+        content: formData.get('content'),
+        mediaUrl: formData.get('mediaUrl'),
+        postType: formData.get('postType'),
+        publishDate: formData.get('publishDate'),
+        publishTime: formData.get('publishTime')
+    };
+
+    localStorage.setItem('postDraft', JSON.stringify(draft));
+    addActivity('💾', 'Rascunho salvo');
+    alert('Rascunho salvo com sucesso!');
 }
 
 // Close modal on outside click
@@ -345,29 +400,68 @@ document.getElementById('new-post-form').addEventListener('submit', async (e) =>
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const data = {
+
+    // Get selected platforms
+    const platforms = [];
+    document.querySelectorAll('input[name="platforms"]:checked').forEach(cb => {
+        platforms.push(cb.value);
+    });
+
+    if (platforms.length === 0) {
+        alert('Selecione pelo menos uma plataforma!');
+        return;
+    }
+
+    const date = formData.get('publishDate');
+    const time = formData.get('publishTime') || '10:00';
+
+    const postData = {
         content: formData.get('content'),
-        imageUrl: formData.get('imageUrl'),
-        platform: formData.get('platform'),
-        publishDate: formData.get('publishDate')
+        mediaUrl: formData.get('mediaUrl'),
+        mediaType: formData.get('mediaType'),
+        thumbnailUrl: formData.get('thumbnailUrl'),
+        postType: formData.get('postType'),
+        firstComment: formData.get('firstComment'),
+        location: formData.get('location'),
+        platforms: platforms,
+        publishDate: `${date}T${time}:00`
     };
 
-    try {
-        const response = await fetch('/api/posts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+    // Create a post for each platform
+    const results = [];
+    for (const platform of platforms) {
+        try {
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: postData.content,
+                    imageUrl: postData.mediaUrl,
+                    platform: platform,
+                    publishDate: postData.publishDate,
+                    postType: postData.postType,
+                    mediaType: postData.mediaType
+                })
+            });
 
-        if (response.ok) {
-            closeModal();
-            loadPosts();
-            addActivity('📝', 'Novo post agendado');
-        } else {
-            alert('Erro ao criar post. Tente novamente.');
+            if (response.ok) {
+                results.push({ platform, success: true });
+            } else {
+                results.push({ platform, success: false });
+            }
+        } catch (error) {
+            results.push({ platform, success: false, error: error.message });
         }
-    } catch (error) {
-        alert('Erro ao criar post: ' + error.message);
+    }
+
+    const successCount = results.filter(r => r.success).length;
+
+    if (successCount > 0) {
+        closeModal();
+        loadPosts();
+        addActivity('📝', `Post agendado para ${successCount} plataforma(s)`);
+    } else {
+        alert('Erro ao criar post. Tente novamente.');
     }
 });
 

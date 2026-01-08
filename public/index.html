@@ -289,39 +289,123 @@
         </section>
     </main>
 
-    <!-- New Post Modal -->
+    <!-- New Post Modal - Estilo Meta Business Suite -->
     <div id="new-post-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header">
-                <h2>📝 Novo Post</h2>
+                <h2>📝 Criar Publicação</h2>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="new-post-form">
+                    <!-- Tipo de Publicação -->
                     <div class="form-group">
-                        <label>Conteúdo</label>
-                        <textarea name="content" rows="4" placeholder="Escreva seu post aqui..." required></textarea>
+                        <label>📌 Tipo de Publicação</label>
+                        <div style="display: flex; gap: 10px; margin-top: 8px;">
+                            <label class="post-type-option"
+                                style="flex: 1; padding: 12px; background: var(--bg-secondary); border: 2px solid var(--accent-blue); border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="postType" value="feed" checked style="display: none;">
+                                <span style="font-size: 20px;">📷</span><br>
+                                <small>Feed</small>
+                            </label>
+                            <label class="post-type-option"
+                                style="flex: 1; padding: 12px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="postType" value="story" style="display: none;">
+                                <span style="font-size: 20px;">📱</span><br>
+                                <small>Story</small>
+                            </label>
+                            <label class="post-type-option"
+                                style="flex: 1; padding: 12px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="postType" value="reels" style="display: none;">
+                                <span style="font-size: 20px;">🎬</span><br>
+                                <small>Reels</small>
+                            </label>
+                            <label class="post-type-option"
+                                style="flex: 1; padding: 12px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="postType" value="carousel" style="display: none;">
+                                <span style="font-size: 20px;">🎠</span><br>
+                                <small>Carrossel</small>
+                            </label>
+                        </div>
                     </div>
+
+                    <!-- Plataformas -->
                     <div class="form-group">
-                        <label>URL da Imagem (opcional)</label>
-                        <input type="url" name="imageUrl" placeholder="https://...">
+                        <label>🌐 Publicar em</label>
+                        <div style="display: flex; gap: 15px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="platforms" value="Instagram" checked
+                                    style="width: 18px; height: 18px;">
+                                <span>📷 Instagram</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="platforms" value="Facebook"
+                                    style="width: 18px; height: 18px;">
+                                <span>📘 Facebook</span>
+                            </label>
+                        </div>
                     </div>
+
+                    <!-- Legenda/Conteúdo -->
+                    <div class="form-group">
+                        <label>✍️ Legenda</label>
+                        <textarea name="content" rows="5"
+                            placeholder="Escreva sua legenda aqui...&#10;&#10;Use #hashtags e @menções" required
+                            style="resize: vertical;"></textarea>
+                        <small style="color: var(--text-muted);">Máximo 2.200 caracteres</small>
+                    </div>
+
+                    <!-- Mídia -->
+                    <div class="form-group">
+                        <label>🖼️ Mídia (Imagem ou Vídeo)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select name="mediaType" style="width: 120px;">
+                                <option value="image">📷 Imagem</option>
+                                <option value="video">🎬 Vídeo</option>
+                            </select>
+                            <input type="url" name="mediaUrl" placeholder="Cole a URL da imagem ou vídeo..."
+                                style="flex: 1;">
+                        </div>
+                        <small style="color: var(--text-muted);">Use URLs públicas de imagens/vídeos (JPG, PNG,
+                            MP4)</small>
+                    </div>
+
+                    <!-- Thumbnail para Vídeo -->
+                    <div class="form-group" id="thumbnail-group" style="display: none;">
+                        <label>🎨 Capa do Vídeo (opcional)</label>
+                        <input type="url" name="thumbnailUrl" placeholder="URL da imagem de capa...">
+                    </div>
+
+                    <!-- Agendamento -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Plataforma</label>
-                            <select name="platform" required>
-                                <option value="Instagram">Instagram</option>
-                                <option value="Facebook">Facebook</option>
-                            </select>
+                            <label>📅 Data</label>
+                            <input type="date" name="publishDate" required>
                         </div>
                         <div class="form-group">
-                            <label>Data de Publicação</label>
-                            <input type="datetime-local" name="publishDate" required>
+                            <label>⏰ Horário</label>
+                            <input type="time" name="publishTime" value="10:00" required>
                         </div>
                     </div>
+
+                    <!-- Primeira Comentário (Instagram) -->
+                    <div class="form-group">
+                        <label>💬 Primeiro Comentário (opcional)</label>
+                        <input type="text" name="firstComment" placeholder="Adicione hashtags extras aqui...">
+                        <small style="color: var(--text-muted);">Será postado como primeiro comentário</small>
+                    </div>
+
+                    <!-- Localização -->
+                    <div class="form-group">
+                        <label>📍 Localização (opcional)</label>
+                        <input type="text" name="location" placeholder="Ex: São Paulo, Brasil">
+                    </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Agendar Post</button>
+                        <button type="button" class="btn btn-secondary" onclick="saveDraft()">💾 Salvar
+                            Rascunho</button>
+                        <button type="submit" class="btn btn-primary">📅 Agendar Publicação</button>
                     </div>
                 </form>
             </div>

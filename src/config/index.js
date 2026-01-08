@@ -1,6 +1,6 @@
 module.exports = {
     notion: {
-        token: process.env.NOTION_TOKEN,
+        token: process.env.NOTION_API_KEY || process.env.NOTION_TOKEN,
         databases: {
             leads: process.env.NOTION_LEADS_DB,
             posts: process.env.NOTION_POSTS_DB,
